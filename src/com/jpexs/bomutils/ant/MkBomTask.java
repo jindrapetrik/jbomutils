@@ -1,7 +1,5 @@
 package com.jpexs.bomutils.ant;
 
-import org.apache.tools.ant.BuildException;
-
 /**
  *
  * @author JPEXS
@@ -9,7 +7,7 @@ import org.apache.tools.ant.BuildException;
 public class MkBomTask extends Task {
 
     @Override
-    public void execute() throws BuildException {
+    public void execute() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
