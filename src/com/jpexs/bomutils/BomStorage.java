@@ -124,7 +124,8 @@ public class BomStorage {
         if (entries != null) {
             bos.write(entries, 0, (int) entry_size);
         }
-        List<BomPointer> temp = (List<BomPointer>) ((ArrayList) block_table).clone();
+        @SuppressWarnings("unchecked")
+        List<BomPointer> temp = (ArrayList<BomPointer>) ((ArrayList<BomPointer>) block_table).clone();
         for (int i = 0; i < temp.size(); ++i) {
             if (temp.get(i).length != 0) {
                 temp.get(i).address = temp.get(i).address + size_of_header + size_of_vars;

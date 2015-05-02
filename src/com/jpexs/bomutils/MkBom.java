@@ -152,7 +152,7 @@ public class MkBom {
 
             Stack<Pair<Long, Node>> stack = new Stack<>();
 
-            stack.push(new Pair(0L, root));
+            stack.push(new Pair<Long, Node>(0L, root));
             int j = 0;
             int k = 0;
             int current_path = 0;

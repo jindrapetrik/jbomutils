@@ -1,73 +1,279 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- You may freely edit this file. See commented blocks below for -->
-<!-- some examples of how to customize the build. -->
-<!-- (If you delete it and reopen the project it will be recreated.) -->
-<!-- By default, only the Clean and Build commands use this build script. -->
-<!-- Commands such as Run, Debug, and Test only use this build script if -->
-<!-- the Compile on Save feature is turned off for the project. -->
-<!-- You can turn off the Compile on Save (or Deploy on Save) setting -->
-<!-- in the project's Project Properties dialog box.-->
-<project name="bomutils" default="default" basedir=".">
-    <description>Builds, tests, and runs the project bomutils.</description>
-    <import file="nbproject/build-impl.xml"/>
-    <!--
+<project name="bomutils" default="all" basedir="." xmlns:jacoco="antlib:org.jacoco.ant">
+    <description>Builds project</description>      
+    
+    <loadproperties srcfile="build.properties" />
+    <property name="src.dir" value="${basedir}/src" />           
+    <property name="dist.dir" value="${basedir}/dist" />
+    <property name="dist.lib.dirname" value="lib" />  
+    <property name="dist.lib.dir" value="${dist.dir}/${dist.lib.dirname}" />  
+    <property name="compile.dir" value="${basedir}/build/classes"/>
+    <property name="lib.dir" value="${basedir}/lib" />
+    <property name="test.lib.dir" value="${basedir}/testlib" />   
+    <property name="test.dir" value="${basedir}/test"/>
+    
+    <property name="instr.dir" value="${basedir}/build/instr-classes"/>
+    <property name="coverage.dir" value="${basedir}/coverage"/>
+    <property name="compile.test.dir" value="${basedir}/build/test"/>
+    <property name="test.result.dir" value="${basedir}/reports/tests"/>
+    <property name="coverage.result.dir" value="${basedir}/reports/coverage"/>
+    <property name="release.dir" value="${basedir}/releases"/>
+    
+    <property name="jar.filename" value="${prefix.filename}"/>
+    <property name="properties.name" value="app.properties"/>
+    <property name="resource.dir" value="${basedir}/resources"/>
+    <property name="javadoc.dir" value="${basedir}/javadoc"/>
+                                        
+    <patternset id="compiler.resources">
+        <include name="**/?*.properties"/>  
+        <include name="**/?*.xml"/>
+        <include name="**/?*.txt"/>
+        <include name="**/?*.gif"/>
+        <include name="**/?*.png"/>
+        <include name="**/?*.jpeg"/>
+        <include name="**/?*.jpg"/>
+        <include name="**/?*.html"/>        
+    </patternset>
+    
+    
+    <taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
+        <classpath path="${test.lib.dir}/jacocoant.jar"/>
+    </taskdef>
+        
+    <target name="compile">
+        <mkdir dir="${compile.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${compile.dir}" includes="**/*.java" target="${target.java}" source="${target.java}" debug="true"
+               debuglevel="lines,vars,source" includeantruntime="false" encoding="utf-8">
+            <compilerarg line="-Xlint:unchecked"/> <!-- For Java 8: -Xdiags:verbose -->
+            <classpath>
+                <fileset dir="${lib.dir}" includes="**/*.jar"/>
+            </classpath>
+        </javac>
+        <copy todir="${compile.dir}">
+            <fileset dir="${src.dir}">
+                <patternset refid="compiler.resources"/>
+                <type type="file"/>
+            </fileset>
+        </copy>
+    </target>      
+    
+    <target name="compile-tests">
+        <mkdir dir="${test.dir}" />
+        <delete dir="${compile.test.dir}"/>
+        <mkdir dir="${compile.test.dir}"/>
+        <javac srcdir="${test.dir}" destdir="${compile.test.dir}" includes="**/*.java" target="${target.java}" source="${target.java}" debug="true" includeantruntime="false" encoding="utf-8">                        
+            <classpath>
+                <pathelement path="${compile.dir}"/>
+                <fileset dir="${lib.dir}" includes="**/*.jar"/>
+                <fileset dir="${test.lib.dir}" includes="**/*.jar"/>
+            </classpath>
+        </javac>
+    </target>
 
-    There exist several targets which are by default empty and which can be 
-    used for execution of your tasks. These targets are usually executed 
-    before and after some main targets. They are: 
+    <path id="emma.lib">
+        <pathelement location="${test.lib.dir}/emma.jar"/>
+        <pathelement location="${test.lib.dir}/emma_ant.jar"/>
+    </path>
+    <taskdef resource="emma_ant.properties" classpathref="emma.lib"/>
 
-      -pre-init:                 called before initialization of project properties
-      -post-init:                called after initialization of project properties
-      -pre-compile:              called before javac compilation
-      -post-compile:             called after javac compilation
-      -pre-compile-single:       called before javac compilation of single file
-      -post-compile-single:      called after javac compilation of single file
-      -pre-compile-test:         called before javac compilation of JUnit tests
-      -post-compile-test:        called after javac compilation of JUnit tests
-      -pre-compile-test-single:  called before javac compilation of single JUnit test
-      -post-compile-test-single: called after javac compilation of single JUunit test
-      -pre-jar:                  called before JAR building
-      -post-jar:                 called after JAR building
-      -post-clean:               called after cleaning build products
+    <!--<target name="coverage.instrumentation">
+        <mkdir dir="${instr.dir}"/>
+        <mkdir dir="${coverage.dir}"/>
+        <emma>
+            <instr instrpath="${compile.dir}" destdir="${instr.dir}" metadatafile="${coverage.dir}/metadata.emma"
+                   mode="copy">
+            </instr>
+        </emma>
+        <copy todir="${instr.dir}">
+            <fileset dir="${src.dir}">
+                <patternset refid="compiler.resources" />
+                <type type="file" />
+            </fileset>
+        </copy>
+    </target>-->
+    <target name="test" depends="compile,compile-tests">
+        <delete dir="${test.result.dir}"/>
+        <mkdir dir="${test.result.dir}"/>
+        <mkdir dir="${test.result.dir}/raw/"/>
+        
+        <!-- <antcall target="coverage.instrumentation"/>-->
+        
+        <taskdef classname="org.testng.TestNGAntTask" classpath="${test.lib.dir}/testng-6.8.jar" name="testng" />
+        <mkdir dir="${coverage.dir}" />
+        <jacoco:coverage destfile="${coverage.dir}/jacoco.exec">
+            <testng outputDir="${test.result.dir}" haltOnFailure="true" verbose="2" workingDir="${basedir}">
+        
+                <classpath>
+                    <pathelement path="${compile.test.dir}"/>
+                    <pathelement path="${instr.dir}"/>
+                    <pathelement path="${compile.dir}"/>
+                    <fileset dir="${lib.dir}" includes="**/*.jar"/>
+                    <fileset dir="${test.lib.dir}" includes="**/*.jar"/>
+                </classpath>
+                <jvmarg value="-noverify" />
+                <jvmarg value="-Demma.coverage.out.file=${coverage.dir}/coverage.emma"/>
+                <jvmarg value="-Demma.coverage.out.merge=true"/>
+                <classfileset dir="${compile.test.dir}" includes="**/*.class" />                        
+            
+            </testng>                
+        </jacoco:coverage>
+        <!-- Coverage report -->
+        <mkdir dir="${coverage.result.dir}"/>
+        <jacoco:report>
+            <!-- sourcepath="${src.dir}"-->
+            <executiondata>
+                <file file="${coverage.dir}/jacoco.exec" />
+            </executiondata>
+            <structure name="${project.name}">
+                <classfiles>
+                    <fileset dir="${compile.dir}" />
+                </classfiles>
+                <sourcefiles encoding="UTF-8">
+                    <fileset dir="${src.dir}" />
+                </sourcefiles>
+            </structure>
+            <html destdir="${coverage.result.dir}" />
+        </jacoco:report>
+        
+    </target>        
+       
+    <target name="archive" depends="dist">
+        <mkdir dir="${release.dir}"/>
+        <property  name="zip.file" value="${release.dir}/${prefix.filename}_${version}${version.suffix}.zip" />
+        <zip destfile="${zip.file}" basedir="${dist.dir}" />
+    </target>                 
+         
+    <target name="all" depends="clean,build,test,javadoc,archive">    
+        
+    </target>                    
+      
+    
+    <target name="dist" depends="build">
+        <mkdir dir="${resource.dir}" />
+        <copy todir="${dist.dir}">
+            <fileset dir="${resource.dir}" includes="**/*.*"/>
+        </copy>
+    </target>           
+    
+    <target name="-timestamp">
+        <tstamp>
+            <format property="built.at" pattern="MM/dd/yyyy hh:mm aa" timezone="CET"/>
+            <format property="ver.date" pattern="yyyyddMM_hhmm" timezone="CET"/>
+        </tstamp>        
+        <echo level="info" message="Version: ${version}"/>
+    </target>   
+    
+    <target name="build" depends="-timestamp,compile">        
+        <mkdir dir="${dist.dir}"/>
+        <mkdir dir="${dist.lib.dir}"/>
+        <copy todir="${dist.lib.dir}">
+            <fileset dir="${lib.dir}" includes="**/*.jar"/>
+                       
+        </copy>
+                                                                     
+        <propertyfile file="${compile.dir}/${properties.name}" comment="This file is automatically generated - DO NOT EDIT">        
+            <entry key="buildtime" value="${built.at}"/>
+            <entry key="version" value="${version}"/>                     
+        </propertyfile>
+        
+        <pathconvert pathsep=" " property="manifestClassPath">
+            <fileset dir="${dist.dir}" includes="${dist.lib.dirname}/**/*.*"/>
+            <chainedmapper>
+                <flattenmapper/>
+                <globmapper from="*" to="${dist.lib.dirname}/*"/>
+            </chainedmapper>
+        </pathconvert>
 
-    (Targets beginning with '-' are not intended to be called on their own.)
+        <jar destfile="${dist.dir}/${jar.filename}.jar" basedir="${compile.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${main.class}"/>
+                <attribute name="Class-Path" value="${manifestClassPath}"/>
+            </manifest>
+        </jar>
+    </target>
 
-    Example of inserting an obfuscator after compilation could look like this:
-
-        <target name="-post-compile">
-            <obfuscate>
-                <fileset dir="${build.classes.dir}"/>
-            </obfuscate>
-        </target>
-
-    For list of available properties check the imported 
-    nbproject/build-impl.xml file. 
+    <target name="run" depends="build">
+        <java jar="${dist.dir}/${jar.filename}.jar" fork="true">            
+            <arg line="${run.params}" />
+        </java>
+    </target>
 
 
-    Another way to customize the build is by overriding existing main targets.
-    The targets of interest are: 
-
-      -init-macrodef-javac:     defines macro for javac compilation
-      -init-macrodef-junit:     defines macro for junit execution
-      -init-macrodef-debug:     defines macro for class debugging
-      -init-macrodef-java:      defines macro for class execution
-      -do-jar:                  JAR building
-      run:                      execution of project 
-      -javadoc-build:           Javadoc generation
-      test-report:              JUnit report generation
-
-    An example of overriding the target for project execution could look like this:
-
-        <target name="run" depends="bomutils-impl.jar">
-            <exec dir="bin" executable="launcher.exe">
-                <arg file="${dist.jar}"/>
-            </exec>
-        </target>
-
-    Notice that the overridden target depends on the jar target and not only on 
-    the compile target as the regular run target does. Again, for a list of available 
-    properties which you can use, check the target you are overriding in the
-    nbproject/build-impl.xml file. 
-
-    -->
+    <target name="javadoc">
+        <mkdir dir="${javadoc.dir}"/>
+        <javadoc sourcepath="${src.dir}" destdir="${javadoc.dir}" windowtitle="${project.name}"
+                 useexternalfile="yes">
+            <fileset dir="${src.dir}" includes="**/*.java"/>
+            <classpath>
+                <fileset dir="${lib.dir}" includes="**/*.jar"/>
+            </classpath>
+        </javadoc>
+    </target>
+    <target name="clean">        
+        <delete dir="${dist.dir}"/>
+        <delete dir="${compile.test.dir}"/>
+        <delete dir="${compile.dir}"/>
+        <delete dir="${coverage.dir}"/>
+        <delete dir="${test.result.dir}"/>
+        <delete dir="${instr.dir}"/>
+    </target>
+    
+    <!-- Debug one test method (Netbeans IDE) -->
+    <target name="debug-test-method" depends="compile-tests">
+        <fail unless="test.class">Must select one file in the IDE or set test.class</fail>
+        <fail unless="test.method">Must select some method in the IDE or set test.method</fail>
+        <delete dir="${test.result.dir}"/>
+        <mkdir dir="${test.result.dir}"/>
+        <mkdir dir="${test.result.dir}/raw/"/>
+     
+        <nbjpdastart addressproperty="jpda.address" name="ffdec" transport="dt_socket">
+            <classpath>
+                <pathelement path="${compile.dir}"/>
+                <fileset dir="${lib.dir}" includes="**/*.jar"/>
+                <fileset dir="${test.lib.dir}" includes="**/*.jar"/>
+            </classpath>
+        </nbjpdastart>
+        <taskdef classname="org.testng.TestNGAntTask" classpath="${test.lib.dir}/testng-6.8.jar" name="testng" />
+    
+        <testng 
+            outputDir="${test.result.dir}"
+            haltOnFailure="false" verbose="2" workingDir="${basedir}" methods="${test.class}.${test.method}">
+        
+            <classpath>
+                <pathelement path="${compile.test.dir}"/>
+                <pathelement path="${instr.dir}"/>
+                <pathelement path="${compile.dir}"/>
+                <fileset dir="${lib.dir}" includes="**/*.jar"/>
+                <fileset dir="${test.lib.dir}" includes="**/*.jar"/>
+            </classpath>
+            <jvmarg value="-noverify" />
+            <jvmarg value="-Xdebug"/>
+            <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
+            <classfileset dir="${compile.test.dir}" includes="**/*.class" />                                    
+        </testng>     
+    </target>                         
+    
+    <target name="run-task-mkbom" depends="build">
+        <taskdef name="mkbom" classname="com.jpexs.bomutils.ant.MkBomTask" classpath="${dist.dir}/${jar.filename}.jar" />
+        <mkbom />
+    </target>
+    
+    <target name="run-task-dumpbom" depends="build">
+        <taskdef name="dumpbom" classname="com.jpexs.bomutils.ant.DumpBomTask" classpath="${dist.dir}/${jar.filename}.jar" />
+        <dumpbom />
+    </target>
+    
+    <target name="run-task-lsbom" depends="build">
+        <taskdef name="lsbom" classname="com.jpexs.bomutils.ant.LsBomTask" classpath="${dist.dir}/${jar.filename}.jar" />
+        <lsbom />
+    </target>
+    
+    <target name="run-task-ls4mkbom" depends="build">
+        <taskdef name="ls4mkbom" classname="com.jpexs.bomutils.ant.Ls4MkBomTask" classpath="${dist.dir}/${jar.filename}.jar" />
+        <ls4mkbom />
+    </target>
+    
+    <target name="run-tasks" depends="run-task-mkbom,run-task-lsbom,run-task-ls4mkbom,run-task-dumpbom">
+        
+    </target>
 </project>

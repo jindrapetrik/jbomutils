@@ -19,8 +19,8 @@ public class Tools {
      *
      * @param is stream
      * @param delim delimiter
-     * @return
-     * @throws IOException
+     * @return Line
+     * @throws IOException On read fail
      */
     public static String getline(InputStream is, int delim) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
