@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="bomutils" default="all" basedir="." xmlns:jacoco="antlib:org.jacoco.ant">
+<project name="jbomutils" default="all" basedir="." xmlns:jacoco="antlib:org.jacoco.ant">
     <description>Builds project</description>      
     
     <loadproperties srcfile="build.properties" />
@@ -46,9 +46,9 @@
         <javac srcdir="${src.dir}" destdir="${compile.dir}" includes="**/*.java" target="${target.java}" source="${target.java}" debug="true"
                debuglevel="lines,vars,source" includeantruntime="false" encoding="utf-8">
             <compilerarg line="-Xlint:unchecked"/> <!-- For Java 8: -Xdiags:verbose -->
-           <!-- <classpath>
+            <classpath>
                 <fileset dir="${lib.dir}" includes="**/*.jar"/>
-            </classpath>-->
+            </classpath>
         </javac>
         <copy todir="${compile.dir}">
             <fileset dir="${src.dir}">
@@ -75,9 +75,7 @@
         <delete dir="${test.result.dir}"/>
         <mkdir dir="${test.result.dir}"/>
         <mkdir dir="${test.result.dir}/raw/"/>
-        
-        <!-- <antcall target="coverage.instrumentation"/>-->
-        
+                
         <taskdef classname="org.testng.TestNGAntTask" classpath="${test.lib.dir}/testng-6.8.jar" name="testng" />
         <mkdir dir="${coverage.dir}" />
         <jacoco:coverage destfile="${coverage.dir}/jacoco.exec">
@@ -87,7 +85,7 @@
                     <pathelement path="${compile.test.dir}"/>
                     <pathelement path="${instr.dir}"/>
                     <pathelement path="${compile.dir}"/>
-                    <!-- <fileset dir="${lib.dir}" includes="**/*.jar"/>-->
+                    <fileset dir="${lib.dir}" includes="**/*.jar"/>
                     <fileset dir="${test.lib.dir}" includes="**/*.jar"/>
                 </classpath>
                 <jvmarg value="-noverify" />
@@ -222,7 +220,7 @@
                 <pathelement path="${compile.test.dir}"/>
                 <pathelement path="${instr.dir}"/>
                 <pathelement path="${compile.dir}"/>
-                <!-- <fileset dir="${lib.dir}" includes="**/*.jar"/>-->
+                <fileset dir="${lib.dir}" includes="**/*.jar"/>
                 <fileset dir="${test.lib.dir}" includes="**/*.jar"/>
             </classpath>
             <jvmarg value="-noverify" />
@@ -232,23 +230,36 @@
         </testng>     
     </target>                         
     
+    <!-- Sample mkbom task -->
     <target name="run-task-mkbom" depends="build">
-        <taskdef name="mkbom" classname="com.jpexs.bomutils.ant.MkBomTask" classpath="${dist.dir}/${jar.filename}.jar" />
-        <mkbom />
+        <taskdef name="mkbom" classname="com.jpexs.jbomutils.ant.MkBomTask" classpath="${dist.dir}/${jar.filename}.jar" />
+        <mkbom destfile="${basedir}/Bom" verbose="true">
+            <bomfileset dir="${basedir}/base" prefix="data/">
+              <patternset>
+                <include name="**/*.jpg"/>                
+              </patternset>
+            </bomfileset>
+            <bomfileset dir="${basedir}/src" prefix="source/">
+              <patternset>
+                <include name="**/*.java"/>                
+              </patternset>
+            </bomfileset>
+        </mkbom>        
     </target>
     
+    <!-- Other tasks not (yet?) implemented -->
     <target name="run-task-dumpbom" depends="build">
-        <taskdef name="dumpbom" classname="com.jpexs.bomutils.ant.DumpBomTask" classpath="${dist.dir}/${jar.filename}.jar" />
+        <taskdef name="dumpbom" classname="com.jpexs.jbomutils.ant.DumpBomTask" classpath="${dist.dir}/${jar.filename}.jar" />
         <dumpbom />
     </target>
     
     <target name="run-task-lsbom" depends="build">
-        <taskdef name="lsbom" classname="com.jpexs.bomutils.ant.LsBomTask" classpath="${dist.dir}/${jar.filename}.jar" />
+        <taskdef name="lsbom" classname="com.jpexs.jbomutils.ant.LsBomTask" classpath="${dist.dir}/${jar.filename}.jar" />
         <lsbom />
     </target>
     
     <target name="run-task-ls4mkbom" depends="build">
-        <taskdef name="ls4mkbom" classname="com.jpexs.bomutils.ant.Ls4MkBomTask" classpath="${dist.dir}/${jar.filename}.jar" />
+        <taskdef name="ls4mkbom" classname="com.jpexs.jbomutils.ant.Ls4MkBomTask" classpath="${dist.dir}/${jar.filename}.jar" />
         <ls4mkbom />
     </target>
     
