@@ -71,9 +71,10 @@ public class MkBomTask extends Task {
     @Override
     public void execute() {
         validate();
+        System.out.println("MkBom: Creating BOM file to \"" + destFile + "\" ...");
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         Set<String> dirs = new HashSet<>();
-
+        Set<String> files = new HashSet<>();
         for (BomFileSet fs : filesets) {
 
             String fullPath = fs.getFullpath(project);
@@ -98,33 +99,44 @@ public class MkBomTask extends Task {
                     targetName = prefix + fileName;
                 }
                 targetName = targetName.replace('\\', '/');
-
-                String path_parts[] = ("./" + targetName).split("/");
-                String pdir = "";
-                for (int p = 0; p < path_parts.length - 1/*Last is filename*/; p++) {
-                    String pname = path_parts[p];
-                    if (!pdir.isEmpty()) {
-                        pdir += "/";
-                    }
-                    pdir += pname;
-                    if (!dirs.contains(pdir)) {
-                        if (verbose) {
-                            System.out.println("MkBom: Adding dir \"" + pdir + "\"");
+                if (targetName.isEmpty()) {
+                    targetName = ".";
+                }
+                if (!targetName.equals(".")) {
+                    String path_parts[] = ("./" + targetName).split("/");
+                    String pdir = "";
+                    String dirname = targetName.contains("/") ? targetName.substring(0, targetName.lastIndexOf("/")) : "";
+                    if (!dirs.contains(dirname)) {
+                        for (int p = 0; p < path_parts.length - 1/*Last is filename*/; p++) {
+                            String pname = path_parts[p];
+                            if (!pdir.isEmpty()) {
+                                pdir += "/";
+                            }
+                            pdir += pname;
+                            if (!dirs.contains(pdir)) {
+                                if (verbose) {
+                                    System.out.println("MkBom: Adding parent dir \"" + pdir + "\" ...");
+                                }
+                                if (fullPath.isEmpty() && (pdir + "/").startsWith(prefix)) {
+                                    PrintNode.print_node(output, fs.getDir(project).getAbsolutePath(), ((prefix.equals(pdir + "/")) ? prefix : pdir).replace("/", File.separator).substring(prefix.length()), pdir, uid, gid, false, fs.getDirMode(project));
+                                } else {
+                                    PrintNode.print_custom_node(output, pdir, uid, gid, Stat.S_IFDIR + (fs.getDirMode(project) == -1 ? 0 : 0777));
+                                }
+                            }
+                            dirs.add(pdir);
+                            if (pdir.equals(".")) {
+                                pdir = "";
+                            }
                         }
-                        if (fullPath.isEmpty() && (pdir + "/").startsWith(prefix)) {
-                            PrintNode.print_node(output, fs.getDir(project).getAbsolutePath(), ((prefix.equals(pdir + "/")) ? prefix : pdir).replace("/", File.separator).substring(prefix.length()), pdir, uid, gid, false, fs.getDirMode(project));
-                        } else {
-                            PrintNode.print_custom_node(output, pdir, uid, gid, Stat.S_IFDIR + (fs.getDirMode(project) == -1 ? 0 : 0777));
-                        }
-                    }
-                    dirs.add(pdir);
-                    if (pdir.equals(".")) {
-                        pdir = "";
                     }
                 }
                 if (verbose) {
-                    System.out.println("MkBom: Adding file \"" + targetName + "\"");
+                    System.out.println("MkBom: Adding \"" + targetName + "\" ...");
                 }
+                if (files.contains(targetName)) {
+                    continue;
+                }
+                files.add(targetName);
                 PrintNode.print_node(output, fs.getDir(project).getAbsolutePath(), fileName, targetName, uid, gid, false, fs.getFileMode(project));
             }
 
