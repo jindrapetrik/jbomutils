@@ -234,16 +234,16 @@
     <target name="run-task-mkbom" depends="build">
         <taskdef name="mkbom" classname="com.jpexs.jbomutils.ant.MkBomTask" classpath="${dist.dir}/${jar.filename}.jar" />
         <mkbom destfile="${basedir}/Bom" verbose="true">
-            <bomfileset dir="${basedir}/base" prefix="data/">
+            <tarfileset dir="${basedir}/base" prefix="data/">
               <patternset>
                 <include name="**/*.jpg"/>                
               </patternset>
-            </bomfileset>
-            <bomfileset dir="${basedir}/src" prefix="source/">
+            </tarfileset>
+            <tarfileset dir="${basedir}/src" prefix="source/">
               <patternset>
                 <include name="**/*.java"/>                
               </patternset>
-            </bomfileset>
+            </tarfileset>
         </mkbom>        
     </target>
     

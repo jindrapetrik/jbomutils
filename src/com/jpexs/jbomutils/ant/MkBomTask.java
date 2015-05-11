@@ -15,6 +15,7 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.TarFileSet;
 
 /**
  *
@@ -39,9 +40,9 @@ public class MkBomTask extends Task {
         this.project = project;
     }
 
-    private List<BomFileSet> filesets = new ArrayList<>();
+    private List<TarFileSet> filesets = new ArrayList<>();
 
-    public void addBomFileset(BomFileSet fileset) {
+    public void addTarFileset(TarFileSet fileset) {
         filesets.add(fileset);
     }
 
@@ -75,20 +76,14 @@ public class MkBomTask extends Task {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         Set<String> dirs = new HashSet<>();
         Set<String> files = new HashSet<>();
-        for (BomFileSet fs : filesets) {
+        for (TarFileSet fs : filesets) {
 
             String fullPath = fs.getFullpath(project);
             String prefix = fs.getPrefix(project);
             String fileNames[] = getFileNames(fs);
 
-            long gid = fs.getGid();
-            if (gid == -1) {
-                gid = Long.MAX_VALUE;
-            }
-            long uid = fs.getUid();
-            if (uid == -1) {
-                uid = Long.MAX_VALUE;
-            }
+            long gid = fs.hasGroupIdBeenSet() ? fs.getGid() : Long.MAX_VALUE;
+            long uid = fs.hasUserIdBeenSet() ? fs.getUid() : Long.MAX_VALUE;
             for (int i = 0; i < fileNames.length; i++) {
                 String targetName;
                 String fileName = fileNames[i];
@@ -118,9 +113,9 @@ public class MkBomTask extends Task {
                                     System.out.println("MkBom: Adding parent dir \"" + pdir + "\" ...");
                                 }
                                 if (fullPath.isEmpty() && (pdir + "/").startsWith(prefix)) {
-                                    PrintNode.print_node(output, fs.getDir(project).getAbsolutePath(), ((prefix.equals(pdir + "/")) ? prefix : pdir).replace("/", File.separator).substring(prefix.length()), pdir, uid, gid, false, fs.getDirMode(project));
+                                    PrintNode.print_node(output, fs.getDir(project).getAbsolutePath(), ((prefix.equals(pdir + "/")) ? prefix : pdir).replace("/", File.separator).substring(prefix.length()), pdir, uid, gid, false, fs.hasDirModeBeenSet() ? fs.getDirMode(project) : -1);
                                 } else {
-                                    PrintNode.print_custom_node(output, pdir, uid, gid, Stat.S_IFDIR + (fs.getDirMode(project) == -1 ? 0 : 0777));
+                                    PrintNode.print_custom_node(output, pdir, uid, gid, Stat.S_IFDIR + (fs.hasDirModeBeenSet() ? fs.getDirMode(project) : 0777));
                                 }
                             }
                             dirs.add(pdir);
@@ -137,7 +132,7 @@ public class MkBomTask extends Task {
                     continue;
                 }
                 files.add(targetName);
-                PrintNode.print_node(output, fs.getDir(project).getAbsolutePath(), fileName, targetName, uid, gid, false, fs.getFileMode(project));
+                PrintNode.print_node(output, fs.getDir(project).getAbsolutePath(), fileName, targetName, uid, gid, false, fs.hasFileModeBeenSet() ? fs.getFileMode(project) : -1);
             }
 
         }
