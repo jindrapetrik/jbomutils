@@ -20,16 +20,16 @@ You can create BOM files from Ant using task mkbom:
 ...
         <mkbom destfile="${basedir}/Bom">
             <!-- Add some files -->
-            <bomfileset dir="${basedir}/base" prefix="data/">
+            <tarfileset dir="${basedir}/base" prefix="data/">
               <patternset>
                 <include name="**/*.jpg"/>                
               </patternset>
-            </bomfileset>
-            <bomfileset dir="${basedir}/src" prefix="source/">
+            </tarfileset>
+            <tarfileset dir="${basedir}/src" prefix="source/">
               <patternset>
                 <include name="**/*.java"/>                
               </patternset>
-            </bomfileset>
+            </tarfileset>
         </mkbom>   
 ```
 
