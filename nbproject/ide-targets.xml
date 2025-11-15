@@ -22,10 +22,10 @@
     </target>
     
     <target name="profile-nb" if="profiler.configured" depends="-profile-check">
-            <java classname="${mainclass}" dir="." fork="true">
+            <java classname="${main.class}" dir="." fork="true">
                 <classpath>
-                    <pathelement path="${basedir}/build/classes"/>
-                    <fileset dir="${basedir}/lib" includes="**/*.jar"/>
+                    <pathelement path="${compile.dir}"/>
+                    <fileset dir="${lib.dir}" includes="**/*.jar"/>
                 </classpath>
                 <jvmarg line="${agent.jvmargs}" />
             </java>

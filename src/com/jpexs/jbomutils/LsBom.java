@@ -331,20 +331,20 @@ public class LsBom {
                                                             break;
                                                     }
                                                     if (info2.type == TYPE.FILE || info2.type == TYPE.LINK) {
-                                                        switch (params.charAt(j)) {
+                                                        switch (params.charAt(k)) {
                                                             case 't':
-                                                                System.out.print(info2.modtime);
+                                                                System.out.print(Long.toUnsignedString(info2.modtime));
                                                                 continue;
                                                             case 'T':
                                                                 error("Formated mod time not yet supported");
                                                                 break;
                                                             case 'c':
-                                                                System.out.print(info2.checksum_devType);
+                                                                System.out.print(Long.toUnsignedString(info2.checksum_devType));
                                                                 continue;
                                                         }
                                                     }
                                                     if (info2.type != TYPE.DIR && (!suppressDevSize || info2.type != TYPE.DEV)) {
-                                                        switch (params.charAt(j)) {
+                                                        switch (params.charAt(k)) {
                                                             case 's':
                                                                 System.out.print(info2.size);
                                                                 continue;
@@ -355,7 +355,7 @@ public class LsBom {
                                                     }
 
                                                     if (info2.type == TYPE.LINK) {
-                                                        switch (params.charAt(j)) {
+                                                        switch (params.charAt(k)) {
                                                             case 'l':
                                                                 System.out.print(info2.linkName);
                                                                 continue;
@@ -367,12 +367,12 @@ public class LsBom {
                                                     if (info2.type == TYPE.DEV) {
                                                         long devType = info2.checksum_devType;
 
-                                                        switch (params.charAt(j)) {
+                                                        switch (params.charAt(k)) {
                                                             case '0':
-                                                                System.out.print(devType);
+                                                                System.out.print(Long.toUnsignedString(devType));
                                                                 continue;
                                                             case '1':
-                                                                System.out.print(devType >> 24);
+                                                                System.out.print((devType >> 24) & 0xFF);
                                                                 continue;
                                                             case '2':
                                                                 System.out.print(devType & 0xff);

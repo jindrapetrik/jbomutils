@@ -7,7 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -41,13 +41,13 @@ public class MkBom {
         }
 
     }
-
+   
     public static void write_bom(InputStream is, String outputPath) throws IOException {
         Node root = new Node();
         int num;
         root.type = TNodeType.KRootNode;
         {
-            Map<String, Node> all_nodes = new HashMap<>();
+            Map<String, Node> all_nodes = new LinkedHashMap<>();
             String line;
             while ((line = Tools.getline(is)) != null) {
                 Node n = new Node();
@@ -64,6 +64,7 @@ public class MkBom {
                 n.mode = dec_octal_to_int(Integer.parseInt(elements[0]));
                 n.uid = Integer.parseInt(elements[1]);
                 n.gid = Integer.parseInt(elements[2]);
+                n.modtime = Long.parseLong(elements[3]);
                 n.size = 0;
                 n.checksum = 0;
                 //n.linkNameLength = 0;              
@@ -72,15 +73,15 @@ public class MkBom {
                     n.linkName = "";
                 } else if ((n.mode & 0xF000) == 0x8000) {
                     n.type = TNodeType.KFileNode;
-                    n.size = Integer.parseInt(elements[3]);
-                    n.checksum = Long.parseLong(elements[4]);
+                    n.size = Integer.parseInt(elements[4]);
+                    n.checksum = Long.parseUnsignedLong(elements[5]);
                     n.linkName = "";
                 } else if ((n.mode & 0xF000) == 0xA000) {
                     n.type = TNodeType.KSymbolicLinkNode;
-                    n.size = Integer.parseInt(elements[3]);
-                    n.checksum = Long.parseLong(elements[4]);
+                    n.size = Integer.parseInt(elements[4]);
+                    n.checksum = Long.parseUnsignedLong(elements[5]);
                     //n.linkNameLength = elements[5].length() + 1;
-                    n.linkName = elements[5];
+                    n.linkName = elements[6];
                 } else {
                     throw new RuntimeException("Node type not supported");
                 }
@@ -109,7 +110,7 @@ public class MkBom {
             }
             num = all_nodes.size();
         }
-
+                
         BomStorage bom = new BomStorage();
         {
             int bom_info_size = (Tools.sizeof_uint32_t * 3) + (((num != 0) ? 1 : 0) * BomInfoEntry.size_of);
@@ -152,7 +153,7 @@ public class MkBom {
 
             Stack<Pair<Long, Node>> stack = new Stack<>();
 
-            stack.push(new Pair<Long, Node>(0L, root));
+            stack.push(new Pair<>(0L, root));
             int j = 0;
             int k = 0;
             int current_path = 0;
@@ -160,11 +161,10 @@ public class MkBom {
             int last_file_info = 0;
             int last_paths_id = 0;
             BomPaths paths = null;
-            while (stack.size() != 0) {
-                Pair<Long, Node> p = stack.get(0);
+            while (!stack.isEmpty()) {
+                Pair<Long, Node> p = stack.pop();
                 Node arg = p.second;
-                long parent = p.first;
-                stack.remove(0);
+                long parent = p.first;                
                 for (String it : arg.children.keySet()) {
                     Node node = arg.children.get(it);
                     String s = it;
@@ -211,7 +211,7 @@ public class MkBom {
                     info2.mode = (int) node.mode;
                     info2.user = node.uid;
                     info2.group = node.gid;
-                    info2.modtime = 0;
+                    info2.modtime = node.modtime;
                     info2.size = node.size;
                     info2.unknown1 = 1;
                     info2.checksum_devType = node.checksum;
@@ -236,7 +236,7 @@ public class MkBom {
                     //stack.push_back(std::pair < uint32_t, const Node * > (j + 1, &node ) );
                     stack.add(0, new Pair<>((Long) (long) (j + 1), node));
                     j++;
-                    k = (k + 1) % 256;
+                    k = (k + 1) % 256;                                        
                 }
             }
 

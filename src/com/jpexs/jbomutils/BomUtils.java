@@ -26,16 +26,16 @@ public class BomUtils {
         }
         switch (args[0]) {
             case "mkbom":
-                MkBom.main(Arrays.copyOfRange(args, 1, args.length - 1));
+                MkBom.main(Arrays.copyOfRange(args, 1, args.length));
                 break;
             case "ls4mkbom":
-                Ls4MkBom.main(Arrays.copyOfRange(args, 1, args.length - 1));
+                Ls4MkBom.main(Arrays.copyOfRange(args, 1, args.length));
                 break;
             case "dumpbom":
-                DumpBom.main(Arrays.copyOfRange(args, 1, args.length - 1));
+                DumpBom.main(Arrays.copyOfRange(args, 1, args.length));
                 break;
             case "lsbom":
-                LsBom.main(Arrays.copyOfRange(args, 1, args.length - 1));
+                LsBom.main(Arrays.copyOfRange(args, 1, args.length));
                 break;
             default:
                 usage();

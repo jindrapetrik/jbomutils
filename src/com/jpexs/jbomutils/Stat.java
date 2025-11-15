@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Simulation of stat/lstat C function
@@ -67,11 +68,11 @@ public class Stat {
 
     long st_rdev;   /* device type */
 
-    long st_atim;  /* time of last access */
+    long st_atime;  /* time of last access */
 
-    long st_mtim;  /* time of last data modification */
+    long st_mtime;  /* time of last data modification */
 
-    long st_ctim;  /* time of last file status change */
+    long st_ctime;  /* time of last file status change */
 
     long st_size;   /* file size, in bytes */
 
@@ -101,9 +102,9 @@ public class Stat {
             if (attrs.isSymbolicLink()) {
                 s.st_mode |= S_IFLNK;
             }
-            s.st_atim = attrs.lastAccessTime().toMillis();
-            s.st_mtim = attrs.lastModifiedTime().toMillis();
-            s.st_ctim = attrs.creationTime().toMillis();
+            s.st_atime = attrs.lastAccessTime().to(TimeUnit.SECONDS);
+            s.st_mtime = attrs.lastModifiedTime().to(TimeUnit.SECONDS);
+            s.st_ctime = attrs.creationTime().to(TimeUnit.SECONDS);
             s.st_size = attrs.size();
             s.st_mode |= (f.canRead() ? 0444 : 0) + (f.canWrite() ? 0222 : 0) + (f.canExecute() ? 0111 : 0);
 

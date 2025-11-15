@@ -28,7 +28,7 @@
                 <replaceregex flags="g" pattern="\." replace="/"/>
                 <replaceregex pattern="$" replace=".class"/>
             </filterchain>
-        </loadresource>
+        </loadresource>        
         <testng haltOnFailure="true" outputDir="${test.result.dir}" verbose="2" workingDir="${basedir}">
             <classpath>
                 <pathelement path="${compile.test.dir}"/>

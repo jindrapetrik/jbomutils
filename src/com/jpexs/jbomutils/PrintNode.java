@@ -57,14 +57,15 @@ public class PrintNode {
             }
             output.write((path + "\t" + Integer.toOctalString(fileMode == -1 ? s.st_mode : fileMode | (Stat.S_ISDIR(s.st_mode) ? Stat.S_IFDIR : 0)) + "\t").getBytes());
             output.write(("" + (uid == Long.MAX_VALUE ? s.st_uid : uid) + "/" + (gid == Long.MAX_VALUE ? s.st_gid : gid)).getBytes());
+            output.write(("\t" + s.st_mtime).getBytes());
             if (Stat.S_ISREG(s.st_mode)) {
-                output.write(("\t" + s.st_size + "\t" + Crc32.calc(new File(fullpath))).getBytes());
+                output.write(("\t" + s.st_size + "\t" + Long.toUnsignedString(Crc32.calc(new File(fullpath)))).getBytes());
             }
 
             if (!WINDOWS) {
                 if (Stat.S_ISLNK(s.st_mode)) {
                     String buffer = Files.readSymbolicLink(new File(fullpath).toPath()).toFile().getAbsolutePath();
-                    output.write(("\t" + s.st_size + "\t" + Crc32.calc(buffer) + "\t" + buffer).getBytes());
+                    output.write(("\t" + s.st_size + "\t" + Long.toUnsignedString(Crc32.calc(buffer)) + "\t" + buffer).getBytes());
                 }
             }
             output.write(System.lineSeparator().getBytes());
